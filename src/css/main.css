@@ -1,0 +1,25 @@
+.editor{
+    min-height: 300px;
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 5px;
+    border-radius: 5px;
+}
+
+.toolbar{
+    margin: 10px;
+    padding: 5px;
+    background-color: darkcyan;
+    border-radius: 20px;
+}
+
+.center{
+    width: 50%;
+    margin: 8% auto;
+}
+
+.title{
+    font-size: xx-large;
+    text-align: center;
+    margin-bottom: 40px;
+}

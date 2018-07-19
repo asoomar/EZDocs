@@ -17,6 +17,7 @@ export default class Register extends React.Component {
   }
   register() {
     if (this.state.password === this.state.confirmPassword) {
+      console.log('Submitting registration request...');
       fetch('http://localhost:1337/signup', {
         method: 'POST',
         headers: {
@@ -62,8 +63,10 @@ export default class Register extends React.Component {
           <label>Confirm Password</label>
           <Input placeholder={'Confirm Password'} type={'password'} value={this.state.confirmPassword} onChange={e => this.updateConfirmPassword(e)} />
         </Form.Field>
-        <Button primary type={'submit'} onClick={() => this.register()}>Register</Button>
-        <Button type={'submit'} onClick={() => this.props.redirect('Login')}>Login</Button>
+        <div className={'alignButtons'}>
+          <Button type={'submit'} onClick={() => this.props.redirect('Login')}>Login</Button>
+          <Button primary type={'submit'} onClick={() => this.register()}>Register</Button>
+        </div>
       </Form>
     </div>);
   }

@@ -13,11 +13,13 @@ export default class Login extends React.Component {
     this.setState({ password: e.target.value });
   }
   checkLogin() {
+    console.log('Verifying login credentials...');
     fetch('http://localhost:1337/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
       },
+      credentials: 'same-origin',
       mode: 'cors',
       body: JSON.stringify({
         username: this.state.username,
@@ -39,24 +41,28 @@ export default class Login extends React.Component {
       });
   }
   render() {
-    return (<div className={'center'}>
-      <h1 className={'title'}>Welcome to EZ-Docs</h1>
-      <h2>Login</h2>
-      {this.state.error ?
-        <Message negative size="mini"><p>Error: Username and password do not match</p></Message>
-        : null}
-      <Form>
-        <Form.Field>
-          <label>Username</label>
-          <Input placeholder={'Username'} value={this.state.username} onChange={e => this.updateUsername(e)} />
-        </Form.Field>
-        <Form.Field>
-          <label>Password</label>
-          <Input placeholder={'Password'} type={'password'} value={this.state.password} onChange={e => this.updatePassword(e)} />
-        </Form.Field>
-        <Button primary type="submit" onClick={() => this.checkLogin()}>Login</Button>
-        <Button type="submit" onClick={() => this.props.redirect('Register')}>Register</Button>
-      </Form>
+    return (<div className={'gradient'}>
+      <div className={'center'}>
+        <h1 className={'title'}>Welcome to EZ-Docs</h1>
+        <h2>Login</h2>
+        {this.state.error ?
+          <Message negative size="mini"><p>Error: Username and password do not match</p></Message>
+          : null}
+        <Form>
+          <Form.Field>
+            <label>Username</label>
+            <Input placeholder={'Username'} value={this.state.username} onChange={e => this.updateUsername(e)} />
+          </Form.Field>
+          <Form.Field>
+            <label>Password</label>
+            <Input placeholder={'Password'} type={'password'} value={this.state.password} onChange={e => this.updatePassword(e)} />
+          </Form.Field>
+          <div className={'alignButtons'}>
+            <Button type="submit" onClick={() => this.props.redirect('Register')}>Register</Button>
+            <Button primary type="submit" onClick={() => this.checkLogin()}>Login</Button>
+          </div>
+        </Form>
+      </div>
     </div>);
   }
 }

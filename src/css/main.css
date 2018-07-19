@@ -1,16 +1,24 @@
 .editor{
     min-height: 300px;
     padding: 10px;
-    border: 2px solid gray;
-    margin: 5px;
-    border-radius: 5px;
+    border: 1px solid rgb(190, 192, 196);
+    margin: 5px auto;
+    border-radius: 1px;
+    background-color: white;
+    max-width: 700px;
+    box-shadow: 3px 3px 10px 2px rgba(193, 174, 151, 0.38);
+}
+
+.editorHolder{
+    width: 100%;
+    height: 100vh;
+    background-color: rgba(190, 192, 196, 0.15);
+    padding: 5px;
 }
 
 .toolbar{
-    margin: 10px;
-    padding: 5px;
-    background-color: darkcyan;
-    border-radius: 20px;
+    padding: 1px;
+    /*background-color: rgba(190, 192, 196, 0.99);*/
 }
 
 .center{
@@ -21,5 +29,113 @@
 .title{
     font-size: xx-large;
     text-align: center;
-    margin-bottom: 40px;
+    padding-bottom: 40px;
+}
+
+.docInfo{
+    margin: 0 auto;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.docHolder{
+    border-bottom: gray 1px solid;
+}
+
+.docMoreInfo{
+    background-color: rgba(190, 192, 196, 0.15);
+    padding: 10px;
+    margin-bottom: 5px;
+}
+
+.docsHeader{
+    display: flex;
+    align-items: center;
+}
+
+.docDetails{
+    display: inline-block;
+    margin: 0 10px;
+}
+
+.docDets{
+    display: inline-block;
+    margin: 0 5px;
+}
+
+.myDocs{
+    width: 80%;
+    margin: 5px auto;
+}
+
+.inline{
+    display: inline-block;
+}
+
+.newDocForm{
+    background-color: rgba(190, 192, 196, 0.15);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.topBar{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgb(54, 109, 196);
+    color: white;
+    padding: 2px;
+}
+
+.docTitle{
+    height: 40px;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.docTitleBar{
+    height: 40px;
+    padding: 10px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.docButton{
+    margin-top: 20px;
+}
+
+.alignButtons{
+    display: flex;
+    justify-content: flex-end;
+}
+
+.right-align{
+    text-align: right;
+}
+
+.left-align{
+    text-align: left;
+}
+
+.justify-align{
+    text-align: justify;
+}
+
+.center-align{
+    text-align: center;
+}
+
+.logout{
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px;
+}
+
+.bodyContainer{
+
 }

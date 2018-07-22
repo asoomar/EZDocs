@@ -84,9 +84,18 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: rgb(54, 109, 196);
+}
+
+.topContainer{
+    padding-left: 4px;
+    background-color: #0E6EB8;
     color: white;
-    padding: 2px;
+}
+
+.saveTime{
+    font-size: 12px;
+    padding-left: 45px;
+    padding-bottom: 8px;
 }
 
 .docTitle{

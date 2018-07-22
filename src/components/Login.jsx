@@ -30,6 +30,7 @@ export default class Login extends React.Component {
     })
       .then((resp) => {
         if (resp.success === true) {
+          this.props.setUser(resp.user);
           this.props.redirect('Document');
         } else {
           this.setState({ error: true });

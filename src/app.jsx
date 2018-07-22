@@ -13,10 +13,14 @@ export default class App extends React.Component {
       editorId: null,
       editorTitle: null,
       document: null,
+      user: null,
     };
   }
   updatePage(newPage) {
     this.setState({ currentPage: newPage });
+  }
+  setUser(user) {
+    this.setState({ user });
   }
   updateEditor(newEditor, id, title, doc) {
     this.setState({ editor: newEditor, editorId: id, editorTitle: title, document: doc });
@@ -26,7 +30,10 @@ export default class App extends React.Component {
   render() {
     return (<div>
       {this.state.currentPage === 'Login' ?
-        <Login redirect={page => this.updatePage(page)} /> : null}
+        <Login
+          redirect={page => this.updatePage(page)}
+          setUser={(user) => this.setUser(user)}
+        /> : null}
       {this.state.currentPage === 'Register' ?
         <Register redirect={page => this.updatePage(page)} /> : null}
       {this.state.currentPage === 'Document' ?
@@ -41,6 +48,7 @@ export default class App extends React.Component {
           editorId={this.state.editorId}
           editorTitle={this.state.editorTitle}
           document={this.state.document}
+          user={this.state.user}
         /> : null}
     </div>);
   }

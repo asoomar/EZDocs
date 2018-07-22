@@ -68,8 +68,7 @@ require('./socket')(io);
 
 app.post('/login', passport.authenticate('local'), (req, res) => {
   console.log('User was just logged in');
-  console.log(req.user);
-  res.send({ success: true });
+  res.send({ success: true, user: req.user });
 });
 
 app.post('/signup', (req, res) => {
@@ -117,8 +116,6 @@ app.post('/newdocument', (req, res) => {
 
 app.get('/mydocs', (req, res) => {
   console.log('Retrieving your documents...');
-  //console.log(req);
-  console.log(req.user);
   if (req.user) {
     Document.find({ owner: req.user._id })
       .then((response) => {
@@ -135,7 +132,6 @@ app.get('/mydocs', (req, res) => {
 
 app.get('/mycollabdocs', (req, res) => {
   console.log('Retrieving documents you collaborate in...');
-  console.log(req.user);
   Document.find()
     .then((response) => {
       let collab = response.filter(doc => {
@@ -180,11 +176,13 @@ app.post('/collaborate', (req, res) => {
 
 app.post('/save', (req, res) => {
   console.log('Id is: ' + req.body.id);
+  let currentDate = new Date();
   const contentUpdate = {
     editorState: req.body.editor,
-    saveTime: new Date(),
+    saveTime: currentDate,
     username: req.user.username,
     title: req.body.title,
+    styles: req.body.styles,
   };
   Document.findById(req.body.id)
     .then((document) => {
@@ -192,7 +190,7 @@ app.post('/save', (req, res) => {
       let newContent = [...document.content];
       newContent.push(contentUpdate);
       Document.findByIdAndUpdate(req.body.id, { content: newContent })
-        .then(() => res.json({ success: true }))
+        .then(() => res.json({ success: true, date: currentDate }))
         .catch(err => console.log(err));
     })
     .catch(err => console.log(err));

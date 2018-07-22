@@ -11,15 +11,15 @@ import { Button, Input, Header, Icon, Dropdown, Modal } from 'semantic-ui-react'
 import { CompactPicker } from 'react-color';
 import { Map } from 'immutable';
 import io from 'socket.io-client';
+const socket = io('http://localhost:1337');
 
 
-const styleMap = {
-  'UPPERCASE': {
-    textTransform: 'uppercase',
-  },
-  'LOWERCASE': {
-    textTransform: 'lowercase',
-  },
+const UPPERCASE = {
+  textTransform: 'uppercase',
+};
+
+const LOWERCASE = {
+  textTransform: 'lowercase',
 };
 
 const fontSizes = [
@@ -60,29 +60,61 @@ class MainEditor extends React.Component {
     super(props);
     this.state = { editorState: EditorState.createEmpty(),
       editTitle: false,
-      inlineStyles: {},
+      inlineStyles: { UPPERCASE, LOWERCASE },
       fontSize: 12,
+      currentUsers: [],
+      lastSave: null,
     };
-    this.onChange = editorState => this.setState({ editorState });
+    // this.onChange = editorState => this.setState({ editorState });
   }
 
   componentDidMount() {
     console.log('Updating document with last save!');
-    console.log(this.props.currentEditor);
     if (this.props.currentEditor) {
       const rawCont = JSON.parse(this.props.currentEditor);
+      console.log(rawCont);
       this.setState({ editorState: EditorState.createWithContent(convertFromRaw(rawCont)) });
+      let lastEditVal = this.props.document.content.length - 1;
+      if (this.props.document.content[lastEditVal].styles) {
+        this.setState({ inlineStyles: this.props.document.content[lastEditVal].styles });
+      }
     }
     this.setState({ title: this.props.editorTitle });
+    let lastEditVal = this.props.document.content.length - 1;
+    this.setState({ lastSave: this.props.document.content[lastEditVal].saveTime});
 
-    const socket = io('http://localhost:1337');
     socket.on('connect', () => { console.log('ws connect'); });
     socket.on('disconnect', () => { console.log('ws disconnect'); });
-    socket.emit('msg', 'Does this work?');
-    socket.on('msg', (data) => {
-      console.log('ws msg:', data);
-      socket.emit('cmd', { foo:123 });
+    socket.emit('joinRoom', { docId: this.props.document._id, user: this.props.user });
+    socket.on('currentusers', (data) => {
+      let collabs = data.map((user) => {
+        return { text: user.username, value: user.username, disabled: true };
+      });
+      this.setState({ currentUsers: collabs }, () => console.log('Users: ', this.state.currentUsers));
     });
+    socket.on('change', (editorState) => {
+      const rawCont = JSON.parse(editorState.editor);
+      this.setState({ editorState: EditorState.createWithContent(convertFromRaw(rawCont)),
+      inlineStyles: editorState.styles });
+    });
+  }
+
+  componentWillUnmount() {
+    console.log('Leaving socket room...');
+    socket.emit('leaveRoom', { docId: this.props.document._id, user: this.props.user });
+  }
+
+  onChange(editorState) {
+    const rawData = JSON.stringify(convertToRaw(editorState.getCurrentContent()));
+    this.setState({
+      editorState,
+    }, () => {
+      socket.emit('change', { editor: rawData, docId: this.props.document._id, styles: this.state.inlineStyles });
+    });
+  }
+
+  getUsers() {
+    socket.emit('currentusers', { docId: this.props.document._id });
   }
 
   _onStyleClick(e, style) {
@@ -119,7 +151,6 @@ class MainEditor extends React.Component {
   }
   saveCurrent() {
     console.log('Saving...');
-    console.log(this.props);
     const rawData = JSON.stringify(convertToRaw(this.state.editorState.getCurrentContent()));
     fetch('http://localhost:1337/save', {
       method: 'POST',
@@ -132,15 +163,15 @@ class MainEditor extends React.Component {
         title: this.props.editorTitle,
         id: this.props.editorId,
         editor: rawData,
+        styles: this.state.inlineStyles,
       }),
     }).then((response) => {
-      console.log(response);
       return response.json();
     })
       .then((resp) => {
-        console.log(resp);
         if (resp.success === true) {
           console.log('Saved document!');
+          this.setState({ lastSave: resp.date });
         } else {
           console.log('Could not save document');
         }
@@ -196,8 +227,9 @@ class MainEditor extends React.Component {
     );
     this.setState({
       inlineStyles: newInlineStyles,
-      editorState: RichUtils.toggleInlineStyle(this.state.editorState, color.hex),
+      //editorState: RichUtils.toggleInlineStyle(this.state.editorState, color.hex),
     });
+    this.onChange(RichUtils.toggleInlineStyle(this.state.editorState, color.hex));
   }
   changeFont(val) {
     console.log('Fontsize is ', val.value);
@@ -240,52 +272,82 @@ class MainEditor extends React.Component {
         console.log(`Error in deleting this document: ${err}`);
       });
   }
+  saveDate() {
+    let theDate = new Date(this.state.lastSave);
+    let options = { weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+    };
+    return theDate.toLocaleString('en-US', options);
+  }
+
 
   render() {
     return (
       <div>
-        <div className={'topBar'}>
-          <div className={'docTitleBar'}>
-            <div className={'inline'}><Button compact size={'small'} onClick={() => this.goBack()} icon={'arrow left'} /></div>
-            <div className={'inline docTitle'} onClick={() => this.toggleEditTitle()}>
-              {this.state.editTitle ?
-                <div>
-                  <Input
-                    transparent
-                    size={'small'}
-                    value={this.state.title}
-                    onChange={e => this.changeTitle(e)}
-                  >
-                    <input />
-                    <Button
-                      size={'mini'}
-                      onMouseDown={() => this.saveTitle()}
-                      icon={'check'}
+        <div className={'topContainer'}>
+          <div className={'topBar'}>
+            <div className={'docTitleBar'}>
+              <div className={'inline'}><Button compact size={'small'} onClick={() => this.goBack()} icon={'arrow left'} /></div>
+              <div className={'inline docTitle'} onClick={() => this.toggleEditTitle()}>
+                {this.state.editTitle ?
+                  <div>
+                    <Input
+                      transparent
+                      size={'small'}
+                      value={this.state.title}
+                      onChange={e => this.changeTitle(e)}
+                    >
+                      <input />
+                      <Button
+                        size={'mini'}
+                        onMouseDown={() => this.saveTitle()}
+                        icon={'check'}
+                      />
+                      <Button
+                        size={'mini'}
+                        onMouseDown={() => this.falseEditTitle()}
+                        icon={'x'}
+                      />
+                    </Input>
+                  </div>  :
+                  <h2>{this.state.title}</h2>}
+              </div>
+            </div>
+            <div>
+              <Button size={'small'} compact>
+                <Dropdown
+                  onClick={() => this.getUsers()}
+                  floating
+                  direction={'left'}
+                  icon={'users'}
+                  header={'Current Collaborators'}
+                  options={this.state.currentUsers}
+                />
+              </Button>
+              <Button size={'small'} compact>
+                <Dropdown floating icon={'trash'}>
+                  <Dropdown.Menu direction={'left'}>
+                    <Dropdown.Item
+                      text={'Delete document'}
+                      onClick={() => this.confirmDelete()}
                     />
-                    <Button
-                      size={'mini'}
-                      onMouseDown={() => this.falseEditTitle()}
-                      icon={'x'}
-                    />
-                  </Input>
-                </div>  :
-                <h2>{this.state.title}</h2>}
+                    {/*<Dropdown.Item>*/}
+                      {/*<Dropdown icon={'users'} text={'All Collaborators'}>*/}
+                      {/*</Dropdown>*/}
+                    {/*</Dropdown.Item>*/}
+                  </Dropdown.Menu>
+                </Dropdown>
+              </Button>
+              <Button compact size={'small'} icon={'save'} onClick={() => this.saveCurrent()} />
             </div>
           </div>
-          <div>
-            <Button size={'small'} compact>
-              <Dropdown floating icon={'file'}>
-                <Dropdown.Menu direction={'left'}>
-                  <Dropdown.Item
-                    icon={'trash'}
-                    text={'Delete document'}
-                    onClick={() => this.confirmDelete()}
-                  />
-                  <Dropdown.Item icon={'users'} text={'Collaborators'} />
-                </Dropdown.Menu>
-              </Dropdown>
-            </Button>
-            <Button compact size={'small'} icon={'save'} onClick={() => this.saveCurrent()} />
+          <div className={'saveTime'}>
+            <em>Last saved on { this.saveDate() }</em>
           </div>
         </div>
         <div className={'toolbar'}>
@@ -391,7 +453,7 @@ class MainEditor extends React.Component {
             <Editor
               editorState={this.state.editorState}
               customStyleMap={this.state.inlineStyles}
-              onChange={this.onChange}
+              onChange={x => this.onChange(x)}
               blockRenderMap={myBlockTypes}
               onTab={this.onTab}
               spellCheck={true}
